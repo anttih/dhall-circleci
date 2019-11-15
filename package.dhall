@@ -4,7 +4,12 @@ let Map =
 let list =
       https://raw.githubusercontent.com/dhall-lang/dhall-lang/v11.1.0/Prelude/List/package.dhall
 
+let JSON =
+      https://raw.githubusercontent.com/dhall-lang/dhall-lang/v11.1.0/Prelude/JSON/package.dhall
+
 let steps = ./steps.dhall
+
+let workflows = ./workflows.dhall
 
 let Step = steps.Step
 
@@ -62,11 +67,19 @@ let Orb
 
 let CircleCi
     : Type
-    = { version : Double, orbs : Optional Orb, jobs : Map.Type Text Job }
+    = { version : Double
+      , orbs : Optional Orb
+      , jobs : Map.Type Text Job
+      , workflows : workflows.Workflows
+      }
 
 let UnsafeCircleCi
     : Type
-    = { version : Double, orbs : Optional Orb, jobs : Map.Type Text JobJSON }
+    = { version : Double
+      , orbs : Optional Orb
+      , jobs : Map.Type Text JobJSON
+      , workflows : JSON.Type
+      }
 
 let toCircleCi
     : CircleCi → UnsafeCircleCi
@@ -74,6 +87,7 @@ let toCircleCi
       → { version = spec.version
         , orbs = spec.orbs
         , jobs = Map.map Text Job JobJSON jobToJson spec.jobs
+        , workflows = workflows.toWorkflows spec.workflows
         }
 
 in  { run = steps.run
@@ -90,5 +104,6 @@ in  { run = steps.run
     , Job = Job
     , Orb = Orb
     , Executor = Executor
+    , workflows = workflows
     , toCircleCi = toCircleCi
     }
